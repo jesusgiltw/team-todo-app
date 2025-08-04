@@ -4,18 +4,18 @@ namespace TaskService.Domain;
 
 public class TaskItem
 {
-    public string Title { get; private set; }
+    public string? Title { get; private set; }
     public DateTime DueDate { get; private set; }
     public bool IsCompleted { get; private set; }
 
-    public TaskItem(string title, DateTime dueDate)
+    public TaskItem(string? title, DateTime dueDate)
     {
         SetTitle(title);
         SetDueDate(dueDate);
         IsCompleted = false;
     }
 
-    private void SetTitle(string title)
+    private void SetTitle(string? title)
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("Title cannot be empty", nameof(title));
