@@ -36,4 +36,17 @@ public class TasksController : ControllerBase
         await _repository.AddAsync(task);
         return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
     }
+
+    [HttpPost("{id}/complete")]
+    public async Task<ActionResult> Complete(Guid id)
+    {
+        var task = await _repository.GetByIdAsync(id);
+        if (task == null)
+            return NotFound();
+
+        task.Complete();
+        await _repository.UpdateAsync(task);
+
+        return NoContent();
+    }
 }

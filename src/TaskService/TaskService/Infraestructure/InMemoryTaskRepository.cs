@@ -23,4 +23,19 @@ public class InMemoryTaskRepository : ITaskRepository
     {
         return Task.FromResult(_storage.Values.AsEnumerable());
     }
+
+    public Task UpdateAsync(TaskItem task)
+    {
+        if (_storage.ContainsKey(task.Id))
+        {
+            _storage[task.Id] = task;
+        }
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteAsync(Guid id)
+    {
+        _storage.TryRemove(id, out _);
+        return Task.CompletedTask;
+    }
 }
