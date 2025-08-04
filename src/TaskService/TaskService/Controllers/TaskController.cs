@@ -47,6 +47,17 @@ public class TasksController : ControllerBase
         task.Complete();
         await _repository.UpdateAsync(task);
 
-        return NoContent();
+        return Ok(task);
+    }
+
+    [HttpDelete("{id}/delete")]
+    public async Task<ActionResult> Delete(Guid id)
+    {
+        var task = await _repository.GetByIdAsync(id);
+        if (task == null)
+            return NotFound();
+
+        await _repository.DeleteAsync(id);
+        return Ok(task);
     }
 }
