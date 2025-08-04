@@ -1,6 +1,8 @@
 using TaskService.Domain;
 using TaskService.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Shared.Messaging;
+using TaskService.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +12,8 @@ builder.Services.AddSwaggerGen();
 
 // Inyección del repo en memoria
 builder.Services.AddSingleton<ITaskRepository, InMemoryTaskRepository>();
+builder.Services.AddSingleton<INotificationPublisher, InMemoryNotificationPublisher>();
+
 
 var app = builder.Build();
 

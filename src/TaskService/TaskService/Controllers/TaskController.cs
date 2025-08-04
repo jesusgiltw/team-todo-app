@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Shared.Events;
+using Shared.Messaging;
 using TaskService.API;
 using TaskService.Domain;
 
@@ -9,10 +11,12 @@ namespace TaskService.Controllers;
 public class TasksController : ControllerBase
 {
     private readonly ITaskRepository _repository;
+    private readonly INotificationPublisher _publisher;
 
-    public TasksController(ITaskRepository repository)
+    public TasksController(ITaskRepository repository, INotificationPublisher publisher)
     {
         _repository = repository;
+        _publisher = publisher;
     }
 
     [HttpGet]
@@ -34,6 +38,10 @@ public class TasksController : ControllerBase
     {
         var task = new TaskItem(request.Title, request.DueDate);
         await _repository.AddAsync(task);
+
+        var notification = new TaskCreatedNotification(task.Id, task.Title, task.DueDate);
+        await _publisher.PublishAsync(notification);
+
         return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
     }
 
