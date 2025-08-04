@@ -45,4 +45,45 @@ public class TaskTests
         var ex = Record.Exception(() => task.Complete());
         Assert.IsType<InvalidOperationException>(ex);
     }
+
+    [Fact]
+public void CanUpdateTitle_WithValidValue()
+{
+    var task = new TaskItem("Original", DateTime.UtcNow.AddDays(1));
+    task.UpdateTitle("Nuevo título");
+
+    Assert.Equal("Nuevo título", task.Title);
+}
+
+[Fact]
+public void CannotUpdateTitle_WithEmptyValue()
+{
+    var task = new TaskItem("Original", DateTime.UtcNow.AddDays(1));
+    var ex = Assert.Throws<ArgumentException>(() => task.UpdateTitle(""));
+
+    Assert.Contains("Title cannot be empty", ex.Message);
+}
+
+[Fact]
+public void CanUpdateDueDate_WithValidFutureDate()
+{
+    var task = new TaskItem("Tarea", DateTime.UtcNow.AddDays(1));
+    var newDate = DateTime.UtcNow.AddDays(5);
+
+    task.UpdateDueDate(newDate);
+
+    Assert.Equal(newDate, task.DueDate);
+}
+
+[Fact]
+public void CannotUpdateDueDate_WithPastDate()
+{
+    var task = new TaskItem("Tarea", DateTime.UtcNow.AddDays(1));
+    var pastDate = DateTime.UtcNow.AddDays(-2);
+
+    var ex = Assert.Throws<ArgumentException>(() => task.UpdateDueDate(pastDate));
+
+    Assert.Contains("Due date must be in the future", ex.Message);
+}
+
 }
