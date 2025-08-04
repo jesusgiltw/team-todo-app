@@ -38,4 +38,11 @@ public class InMemoryTaskRepository : ITaskRepository
         _storage.TryRemove(id, out _);
         return Task.CompletedTask;
     }
+
+    public Task<IEnumerable<TaskItem>> GetTasksDueBetweenAsync(DateTime start, DateTime end, CancellationToken cancellationToken)
+    {
+        var tasksDue = _storage.Values
+            .Where(task => task.DueDate >= start && task.DueDate <= end && !task.IsCompleted);
+        return Task.FromResult(tasksDue.AsEnumerable());
+    }
 }

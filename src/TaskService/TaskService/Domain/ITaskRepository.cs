@@ -7,4 +7,5 @@ public interface ITaskRepository
     Task<IEnumerable<TaskItem>> GetAllAsync();
     Task UpdateAsync(TaskItem task);
     Task DeleteAsync(Guid id);
+    Task<IEnumerable<TaskItem>> GetTasksDueBetweenAsync(DateTime start, DateTime end, CancellationToken cancellationToken);
 }
