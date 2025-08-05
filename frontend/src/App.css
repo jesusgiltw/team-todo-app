@@ -113,3 +113,15 @@ form.task-form {
   max-width: 400px;
   margin: 0 auto; /* <-- Esto centra horizontalmente */
 }
+
+.delete-icon {
+  cursor: pointer;
+  margin-left: 12px;
+  font-size: 18px;
+  transition: transform 0.2s;
+}
+
+.delete-icon:hover {
+  transform: scale(1.2);
+  color: #dc3545;
+}

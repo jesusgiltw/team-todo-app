@@ -34,6 +34,19 @@ function App() {
     }
   };
 
+  const handleDelete = async (taskId) => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar esta tarea?')) return;
+
+    try {
+      await fetch(`http://localhost:5000/api/tasks/${taskId}/delete`, {
+        method: 'DELETE',
+      });
+      fetchTasks();
+    } catch (err) {
+      console.error('Error al eliminar la tarea:', err);
+    }
+  };
+
   const handleAddTask = async (e) => {
     e.preventDefault();
 
@@ -60,7 +73,6 @@ function App() {
     }
   };
 
-  // Ordenar tareas: pendientes primero, luego completadas, ambas por fecha
   const sortedTasks = [...tasks].sort((a, b) => {
     if (a.isCompleted !== b.isCompleted) {
       return a.isCompleted ? 1 : -1;
@@ -88,6 +100,13 @@ function App() {
                 {task.isCompleted ? '✅' : (
                   <button onClick={() => handleComplete(task.id)}>Completar</button>
                 )}
+                <span
+                  className="delete-icon"
+                  onClick={() => handleDelete(task.id)}
+                  title="Eliminar tarea"
+                >
+                  🗑️
+                </span>
               </div>
             </li>
           );
