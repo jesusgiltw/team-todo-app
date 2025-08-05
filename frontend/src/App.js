@@ -137,11 +137,10 @@ function App() {
       <ul>
         {sortedTasks.map(task => {
           const expired = isExpired(task.dueDate);
-          const baseClass = task.isCompleted ? 'completed' : '';
           const urgentClass = !task.isCompleted && isUrgent(task.dueDate) ? 'urgent' : '';
-          // solo para NO completadas y vencidas aplicar estilo expired
           const expiredClass = (!task.isCompleted && expired) ? 'expired' : '';
-          const className = [baseClass, urgentClass, expiredClass].filter(Boolean).join(' ');
+          const completedClass = task.isCompleted ? 'completed' : '';
+          const className = [completedClass, urgentClass, expiredClass].filter(Boolean).join(' ');
 
           return (
             <li key={task.id} className={className}>
@@ -150,12 +149,14 @@ function App() {
                 <small>Vence: {new Date(task.dueDate).toLocaleString()}</small>
               </div>
               <div className="status">
-                {task.isCompleted 
-                  ? <span title="Tarea completada">💀</span> 
-                  : expired 
-                    ? <span title="Tarea vencida sin completar">💀</span> 
-                    : <button onClick={() => handleComplete(task.id)}>Completar</button>
-                }
+                {!task.isCompleted && expired && (
+                  <span title="Tarea vencida sin completar">💀</span>
+                )}
+
+                {!task.isCompleted && !expired && (
+                  <button onClick={() => handleComplete(task.id)}>Completar</button>
+                )}
+
                 <span
                   className="delete-icon"
                   onClick={() => handleDelete(task.id)}
