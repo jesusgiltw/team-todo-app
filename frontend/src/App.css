@@ -71,3 +71,45 @@ button {
 button:hover {
   background-color: #218838;
 }
+
+form.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+form.task-form input {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+form.task-form button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+form.task-form button:hover {
+  background-color: #0069d9;
+}
+
+h2 {
+  text-align: center;
+  color: #007bff;
+}
+
+form.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  margin: 0 auto; /* <-- Esto centra horizontalmente */
+}
