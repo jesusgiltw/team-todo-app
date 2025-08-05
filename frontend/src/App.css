@@ -51,3 +51,9 @@ li .info {
 li .status {
   font-size: 20px;
 }
+
+li.urgent {
+  border-left-color: #dc3545;
+  background-color: #fff0f0;
+  color: #dc3545;
+}

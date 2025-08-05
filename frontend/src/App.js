@@ -10,19 +10,32 @@ function App() {
       .then(data => setTasks(data));
   }, []);
 
+  const isUrgent = (dueDateStr) => {
+    const dueDate = new Date(dueDateStr);
+    const now = new Date();
+    const diffHours = (dueDate - now) / (1000 * 60 * 60);
+    return diffHours > 0 && diffHours < 3;
+  };
+
   return (
     <div className="container">
       <h1>Lista de tareas</h1>
       <ul>
-        {tasks.map(task => (
-          <li key={task.id} className={task.isCompleted ? 'completed' : ''}>
-            <div className="info">
-              <strong>{task.title}</strong><br />
-              <small>Vence: {new Date(task.dueDate).toLocaleString()}</small>
-            </div>
-            <div className="status">{task.isCompleted ? '✅' : '⏳'}</div>
-          </li>
-        ))}
+        {tasks.map(task => {
+          const baseClass = task.isCompleted ? 'completed' : '';
+          const urgentClass = !task.isCompleted && isUrgent(task.dueDate) ? 'urgent' : '';
+          const className = `${baseClass} ${urgentClass}`.trim();
+
+          return (
+            <li key={task.id} className={className}>
+              <div className="info">
+                <strong>{task.title}</strong><br />
+                <small>Vence: {new Date(task.dueDate).toLocaleString()}</small>
+              </div>
+              <div className="status">{task.isCompleted ? '✅' : '⏳'}</div>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
