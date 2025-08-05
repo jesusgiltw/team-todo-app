@@ -4,10 +4,14 @@ import './App.css';
 function App() {
   const [tasks, setTasks] = useState([]);
 
-  useEffect(() => {
+  const fetchTasks = () => {
     fetch('http://localhost:5000/api/tasks')
       .then(res => res.json())
       .then(data => setTasks(data));
+  };
+
+  useEffect(() => {
+    fetchTasks();
   }, []);
 
   const isUrgent = (dueDateStr) => {
@@ -15,6 +19,17 @@ function App() {
     const now = new Date();
     const diffHours = (dueDate - now) / (1000 * 60 * 60);
     return diffHours > 0 && diffHours < 3;
+  };
+
+  const handleComplete = async (taskId) => {
+    try {
+      await fetch(`http://localhost:5000/api/tasks/${taskId}/complete`, {
+        method: 'POST',
+      });
+      fetchTasks(); // Recargar la lista tras completar
+    } catch (err) {
+      console.error('Error al completar la tarea:', err);
+    }
   };
 
   return (
@@ -32,7 +47,11 @@ function App() {
                 <strong>{task.title}</strong><br />
                 <small>Vence: {new Date(task.dueDate).toLocaleString()}</small>
               </div>
-              <div className="status">{task.isCompleted ? '✅' : '⏳'}</div>
+              <div className="status">
+                {task.isCompleted ? '✅' : (
+                  <button onClick={() => handleComplete(task.id)}>Completar</button>
+                )}
+              </div>
             </li>
           );
         })}

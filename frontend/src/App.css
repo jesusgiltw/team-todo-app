@@ -57,3 +57,17 @@ li.urgent {
   background-color: #fff0f0;
   color: #dc3545;
 }
+
+button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: #218838;
+}
