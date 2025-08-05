@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import './App.css';
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -10,12 +11,16 @@ function App() {
   }, []);
 
   return (
-    <div>
+    <div className="container">
       <h1>Lista de tareas</h1>
       <ul>
         {tasks.map(task => (
-          <li key={task.id}>
-            <strong>{task.title}</strong> - vence: {new Date(task.dueDate).toLocaleString()} - {task.isCompleted ? '✅' : '⏳'}
+          <li key={task.id} className={task.isCompleted ? 'completed' : ''}>
+            <div className="info">
+              <strong>{task.title}</strong><br />
+              <small>Vence: {new Date(task.dueDate).toLocaleString()}</small>
+            </div>
+            <div className="status">{task.isCompleted ? '✅' : '⏳'}</div>
           </li>
         ))}
       </ul>
