@@ -1,12 +1,14 @@
-using NotificationService;
-using TaskService.Domain;
-using TaskService.Infrastructure;
+using NotificationService.Handlers;
+using Shared.Messaging;
+using Shared.Events;
 
 var builder = Host.CreateApplicationBuilder(args);
-builder.Services.AddHostedService<Worker>();
 
-builder.Services.AddSingleton<ITaskRepository, InMemoryTaskRepository>();
-builder.Services.AddScoped<INotificationHandler, NotificationHandler>();
+var publisher = new InMemoryNotificationPublisher();
+builder.Services.AddSingleton<INotificationPublisher>(publisher);
+
+var handler = new TaskDueSoonHandler();
+publisher.Subscribe<TaskDueSoonNotification>(handler.Handle);
 
 var host = builder.Build();
 host.Run();

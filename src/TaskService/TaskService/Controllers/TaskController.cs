@@ -42,6 +42,13 @@ public class TasksController : ControllerBase
         var notification = new TaskCreatedNotification(task.Id, task.Title, task.DueDate);
         await _publisher.PublishAsync(notification);
 
+         if (task.DueDate <= DateTime.UtcNow.AddHours(24))
+        {
+            await _publisher.PublishAsync(
+                new TaskDueSoonNotification(task.Id, task.Title, task.DueDate)
+            );
+        }
+
         return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
     }
 
