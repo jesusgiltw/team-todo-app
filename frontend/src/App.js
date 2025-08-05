@@ -1,36 +1,72 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import './App.css';
+
+function Notification({ message, onClose }) {
+  React.useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => {
+      onClose();
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [message, onClose]);
+
+  if (!message) return null;
+
+  return (
+    <div className="notification warning">
+      {message}
+      <button className="close-btn" onClick={onClose} aria-label="Cerrar notificación">&times;</button>
+    </div>
+  );
+}
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [newTitle, setNewTitle] = useState('');
   const [newDueDate, setNewDueDate] = useState('');
+  const [notification, setNotification] = useState('');
 
-  const fetchTasks = () => {
+  const fetchTasks = useCallback(() => {
     fetch('http://localhost:5000/api/tasks')
       .then(res => res.json())
       .then(data => setTasks(data));
-  };
+  }, []);
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [fetchTasks]);
+
+  const now = new Date();
 
   const isUrgent = (dueDateStr) => {
     const dueDate = new Date(dueDateStr);
-    const now = new Date();
     const diffHours = (dueDate - now) / (1000 * 60 * 60);
     return diffHours > 0 && diffHours < 3;
   };
 
+  const isExpired = (dueDateStr) => {
+    const dueDate = new Date(dueDateStr);
+    return dueDate < now;
+  };
+
+  const showNotification = (msg) => {
+    setNotification(msg);
+  };
+
   const handleComplete = async (taskId) => {
     try {
-      await fetch(`http://localhost:5000/api/tasks/${taskId}/complete`, {
+      const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/complete`, {
         method: 'POST',
       });
+      if (!res.ok) {
+        const errText = await res.text();
+        showNotification(`Error al completar la tarea: ${errText}`);
+        return;
+      }
       fetchTasks();
     } catch (err) {
       console.error('Error al completar la tarea:', err);
+      showNotification('Error al completar la tarea, intenta de nuevo.');
     }
   };
 
@@ -38,12 +74,18 @@ function App() {
     if (!window.confirm('¿Estás seguro de que quieres eliminar esta tarea?')) return;
 
     try {
-      await fetch(`http://localhost:5000/api/tasks/${taskId}/delete`, {
+      const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/delete`, {
         method: 'DELETE',
       });
+      if (!res.ok) {
+        const errText = await res.text();
+        showNotification(`Error al eliminar la tarea: ${errText}`);
+        return;
+      }
       fetchTasks();
     } catch (err) {
       console.error('Error al eliminar la tarea:', err);
+      showNotification('Error al eliminar la tarea, intenta de nuevo.');
     }
   };
 
@@ -51,12 +93,12 @@ function App() {
     e.preventDefault();
 
     if (!newTitle || !newDueDate) {
-      alert('Por favor, completa ambos campos');
+      showNotification('Por favor, completa ambos campos');
       return;
     }
 
     try {
-      await fetch('http://localhost:5000/api/tasks', {
+      const res = await fetch('http://localhost:5000/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -65,11 +107,19 @@ function App() {
         })
       });
 
+      if (!res.ok) {
+        const errorText = await res.text();
+        showNotification(`Error al añadir la tarea: ${errorText}`);
+        return;
+      }
+
       setNewTitle('');
       setNewDueDate('');
       fetchTasks();
+
     } catch (err) {
       console.error('Error al añadir la tarea:', err);
+      showNotification('Error al añadir la tarea, intenta de nuevo.');
     }
   };
 
@@ -86,9 +136,12 @@ function App() {
 
       <ul>
         {sortedTasks.map(task => {
+          const expired = isExpired(task.dueDate);
           const baseClass = task.isCompleted ? 'completed' : '';
           const urgentClass = !task.isCompleted && isUrgent(task.dueDate) ? 'urgent' : '';
-          const className = `${baseClass} ${urgentClass}`.trim();
+          // solo para NO completadas y vencidas aplicar estilo expired
+          const expiredClass = (!task.isCompleted && expired) ? 'expired' : '';
+          const className = [baseClass, urgentClass, expiredClass].filter(Boolean).join(' ');
 
           return (
             <li key={task.id} className={className}>
@@ -97,9 +150,12 @@ function App() {
                 <small>Vence: {new Date(task.dueDate).toLocaleString()}</small>
               </div>
               <div className="status">
-                {task.isCompleted ? '✅' : (
-                  <button onClick={() => handleComplete(task.id)}>Completar</button>
-                )}
+                {task.isCompleted 
+                  ? <span title="Tarea completada">💀</span> 
+                  : expired 
+                    ? <span title="Tarea vencida sin completar">💀</span> 
+                    : <button onClick={() => handleComplete(task.id)}>Completar</button>
+                }
                 <span
                   className="delete-icon"
                   onClick={() => handleDelete(task.id)}
@@ -130,6 +186,8 @@ function App() {
         />
         <button type="submit">Añadir tarea</button>
       </form>
+
+      <Notification message={notification} onClose={() => setNotification('')} />
     </div>
   );
 }

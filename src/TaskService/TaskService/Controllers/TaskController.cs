@@ -34,23 +34,29 @@ public class TasksController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult> Create([FromBody] CreateTaskRequest request)
+   public async Task<ActionResult> Create([FromBody] CreateTaskRequest request)
+{
+    if (request.DueDate <= DateTime.UtcNow)
     {
-        var task = new TaskItem(request.Title, request.DueDate);
-        await _repository.AddAsync(task);
-
-        var notification = new TaskCreatedNotification(task.Id, task.Title, task.DueDate);
-        await _publisher.PublishAsync(notification);
-
-         if (task.DueDate <= DateTime.UtcNow.AddHours(24))
-        {
-            await _publisher.PublishAsync(
-                new TaskDueSoonNotification(task.Id, task.Title, task.DueDate)
-            );
-        }
-
-        return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
+        return BadRequest("La fecha de vencimiento debe estar en el futuro.");
     }
+
+    var task = new TaskItem(request.Title, request.DueDate);
+    await _repository.AddAsync(task);
+
+    var notification = new TaskCreatedNotification(task.Id, task.Title, task.DueDate);
+    await _publisher.PublishAsync(notification);
+
+    if (task.DueDate <= DateTime.UtcNow.AddHours(24))
+    {
+        await _publisher.PublishAsync(
+            new TaskDueSoonNotification(task.Id, task.Title, task.DueDate)
+        );
+    }
+
+    return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
+}
+
 
     [HttpPost("{id}/complete")]
     public async Task<ActionResult> Complete(Guid id)

@@ -125,3 +125,76 @@ form.task-form {
   transform: scale(1.2);
   color: #dc3545;
 }
+
+.notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff3cd; /* amarillo claro */
+  border: 1px solid #ffeeba;
+  color: #856404;
+  padding: 16px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  animation: slideDownFade 0.4s ease forwards;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 9999;
+  max-width: 90vw;
+  box-sizing: border-box;
+}
+
+.notification.warning {
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+  color: #856404;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  color: #856404;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.3s ease;
+}
+
+.close-btn:hover {
+  color: #533f03;
+}
+
+@keyframes slideDownFade {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.expired {
+  color: #555555;
+  border: 2px solid black;
+  background-color: #ddd;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.completed span[title="Tarea completada"] {
+  font-size: 1.4em;
+}
+
+.delete-icon {
+  cursor: pointer;
+  margin-left: 10px;
+  font-size: 1.3em;
+}
+
