@@ -1,176 +1,155 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
-import "@fontsource/bitter"; // peso normal
-import "@fontsource/bitter/700.css"; // negrita
-
-
-function Notification({ message, onClose }) {
-  React.useEffect(() => {
-    if (!message) return;
-    const timer = setTimeout(() => {
-      onClose();
-    }, 3500);
-    return () => clearTimeout(timer);
-  }, [message, onClose]);
-
-  if (!message) return null;
-
-  return (
-    <div className="notification warning">
-      {message}
-      <button className="close-btn" onClick={onClose} aria-label="Cerrar notificación">&times;</button>
-    </div>
-  );
-}
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [newTitle, setNewTitle] = useState('');
-  const [newDueDate, setNewDueDate] = useState('');
-  const [notification, setNotification] = useState('');
-
-  const fetchTasks = useCallback(() => {
-    fetch('http://localhost:5000/api/tasks')
-      .then(res => res.json())
-      .then(data => setTasks(data));
-  }, []);
+  const [title, setTitle] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [notification, setNotification] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   useEffect(() => {
     fetchTasks();
-  }, [fetchTasks]);
+  }, []);
 
-  const now = new Date();
-
-  const isUrgent = (dueDateStr) => {
-    const dueDate = new Date(dueDateStr);
-    const diffHours = (dueDate - now) / (1000 * 60 * 60);
-    return diffHours > 0 && diffHours < 3;
+  const fetchTasks = () => {
+    fetch('http://localhost:5000/api/tasks')
+      .then(res => res.json())
+      .then(data => {
+        const sorted = [...data].sort((a, b) => {
+          if (a.isCompleted && !b.isCompleted) return 1;
+          if (!a.isCompleted && b.isCompleted) return -1;
+          return new Date(a.dueDate) - new Date(b.dueDate);
+        });
+        setTasks(sorted);
+      });
   };
 
-  const isExpired = (dueDateStr) => {
-    const dueDate = new Date(dueDateStr);
-    return dueDate < now;
+  const handleComplete = async (id) => {
+    await fetch(`http://localhost:5000/api/tasks/${id}/complete`, {
+      method: 'POST',
+    });
+    fetchTasks();
+  };
+
+  const handleDelete = async (id) => {
+    await fetch(`http://localhost:5000/api/tasks/${id}/delete`, {
+      method: 'DELETE',
+    });
+    fetchTasks();
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const due = new Date(dueDate);
+    if (due <= new Date()) {
+      showNotification('La fecha debe estar en el futuro.');
+      return;
+    }
+
+    const res = await fetch('http://localhost:5000/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, dueDate }),
+    });
+
+    if (!res.ok) {
+      showNotification('Error al crear la tarea.');
+      return;
+    }
+
+    setTitle('');
+    setDueDate('');
+    fetchTasks();
   };
 
   const showNotification = (msg) => {
     setNotification(msg);
+    setTimeout(() => setNotification(null), 4000);
   };
 
-  const handleComplete = async (taskId) => {
-    try {
-      const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/complete`, {
-        method: 'POST',
-      });
-      if (!res.ok) {
-        const errText = await res.text();
-        showNotification(`Error al completar la tarea: ${errText}`);
-        return;
-      }
-      fetchTasks();
-    } catch (err) {
-      console.error('Error al completar la tarea:', err);
-      showNotification('Error al completar la tarea, intenta de nuevo.');
-    }
-  };
-
-  const handleDelete = async (taskId) => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar esta tarea?')) return;
-
-    try {
-      const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/delete`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) {
-        const errText = await res.text();
-        showNotification(`Error al eliminar la tarea: ${errText}`);
-        return;
-      }
-      fetchTasks();
-    } catch (err) {
-      console.error('Error al eliminar la tarea:', err);
-      showNotification('Error al eliminar la tarea, intenta de nuevo.');
-    }
-  };
-
-  const handleAddTask = async (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
-
-    if (!newTitle || !newDueDate) {
-      showNotification('Por favor, completa ambos campos');
+    const updatedDue = new Date(selectedTask.dueDate);
+    if (updatedDue <= new Date()) {
+      showNotification('La fecha debe estar en el futuro.');
       return;
     }
 
-    try {
-      const res = await fetch('http://localhost:5000/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: newTitle,
-          dueDate: new Date(newDueDate).toISOString()
-        })
-      });
+    await fetch(`http://localhost:5000/api/tasks/${selectedTask.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: selectedTask.title,
+        dueDate: selectedTask.dueDate,
+      }),
+    });
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        showNotification(`Error al añadir la tarea: ${errorText}`);
-        return;
-      }
-
-      setNewTitle('');
-      setNewDueDate('');
-      fetchTasks();
-
-    } catch (err) {
-      console.error('Error al añadir la tarea:', err);
-      showNotification('Error al añadir la tarea, intenta de nuevo.');
-    }
+    setSelectedTask(null);
+    fetchTasks();
   };
 
-  const sortedTasks = [...tasks].sort((a, b) => {
-    if (a.isCompleted !== b.isCompleted) {
-      return a.isCompleted ? 1 : -1;
-    }
-    return new Date(a.dueDate) - new Date(b.dueDate);
-  });
+  const formatLocalDateTime = (dateStr) => {
+    const date = new Date(dateStr);
+    const offset = date.getTimezoneOffset();
+    const local = new Date(date.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 16);
+  };
 
   return (
     <div className="container">
       <h1>Lista de tareas</h1>
-
       <ul>
-        {sortedTasks.map(task => {
-          const expired = isExpired(task.dueDate);
-          const urgentClass = !task.isCompleted && isUrgent(task.dueDate) ? 'urgent' : '';
-          const expiredClass = (!task.isCompleted && expired) ? 'expired' : '';
-          const completedClass = task.isCompleted ? 'completed' : '';
-          const className = [completedClass, urgentClass, expiredClass].filter(Boolean).join(' ');
+        {tasks.map(task => {
+          const now = new Date();
+          const due = new Date(task.dueDate);
+          const expired = !task.isCompleted && due < now;
+          const urgent = !task.isCompleted && due - now <= 3 * 60 * 60 * 1000 && due > now;
 
           return (
-            <li key={task.id} className={className}>
-              <div className="info">
+            <li
+              key={task.id}
+              className={`
+                  ${task.isCompleted ? 'completed' : ''}
+                  ${expired ? 'expired' : ''}
+                  ${urgent ? 'urgent' : ''}
+                `}
+
+              onClick={() => setSelectedTask(task)}
+            >
+              <div>
                 <strong>{task.title}</strong><br />
                 <small>
-                  {expired ? (
-                    <>Vencida: {new Date(task.dueDate).toLocaleString()} ⚠️</>
-                  ) : (
-                    <>Vence: {new Date(task.dueDate).toLocaleString()}</>
-                  )}
+                  {expired
+                    ? <>Vencida: {due.toLocaleString()} ⚠️</>
+                    : <>Vence: {due.toLocaleString()}</>
+                  }
                 </small>
-
               </div>
               <div className="status">
-                {!task.isCompleted && expired && (
-                  <span title="Tarea vencida sin completar">⚠️</span>
+                {!task.isCompleted ? (
+                  expired ? (
+                    <span>💀</span>
+                  ) : (
+                    <span>⏳</span>
+                  )
+                ) : (
+                  <span>✅</span>
                 )}
-
-                {!task.isCompleted && !expired && (
-                  <button className="complete-btn" onClick={() => handleComplete(task.id)}>Completar</button>
+                {!task.isCompleted && (
+                  <button className="complete-btn" onClick={(e) => {
+                    e.stopPropagation();
+                    handleComplete(task.id);
+                  }}>
+                    Completar
+                  </button>
                 )}
-
                 <span
                   className="delete-icon"
-                  onClick={() => handleDelete(task.id)}
-                  title="Eliminar tarea"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(task.id);
+                  }}
                 >
                   🗑️
                 </span>
@@ -180,25 +159,65 @@ function App() {
         })}
       </ul>
 
-      <hr style={{ margin: '40px 0' }} />
-
       <h2>Añadir nueva tarea</h2>
-      <form onSubmit={handleAddTask} className="task-form">
+      <form className="task-form" onSubmit={handleSubmit}>
         <input
           type="text"
           placeholder="Título"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
         />
         <input
           type="datetime-local"
-          value={newDueDate}
-          onChange={(e) => setNewDueDate(e.target.value)}
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          required
         />
-        <button type="submit">Añadir tarea</button>
+        <button type="submit">Añadir</button>
       </form>
 
-      <Notification message={notification} onClose={() => setNotification('')} />
+      {notification && (
+        <div className="notification warning">
+          {notification}
+          <button className="close-btn" onClick={() => setNotification(null)}>×</button>
+        </div>
+      )}
+
+      {selectedTask && (
+        <div className="modal">
+          <div className="modal-content">
+            <h2>Editar tarea</h2>
+            <form onSubmit={handleEditSubmit}>
+              <input
+                type="text"
+                value={selectedTask.title}
+                onChange={(e) =>
+                  setSelectedTask({ ...selectedTask, title: e.target.value })
+                }
+              />
+              <input
+                type="datetime-local"
+                value={formatLocalDateTime(selectedTask.dueDate)}
+                onChange={(e) =>
+                  setSelectedTask({ ...selectedTask, dueDate: e.target.value })
+                }
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+                <button type="submit" className="complete-btn">Guardar</button>
+                <button
+                  type="button"
+                  className="complete-btn"
+                  onClick={() => setSelectedTask(null)}
+                  style={{ backgroundColor: '#999' }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

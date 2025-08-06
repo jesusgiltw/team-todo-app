@@ -147,3 +147,76 @@ li {
 .complete-btn:hover {
   background-color: #001F29;
 }
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  background-color: #EDF1F3; /* Mist Gray */
+  border: 2px solid #003D4F; /* Wave Blue */
+  border-radius: 12px;
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.modal-content h2 {
+  font-family: 'Bitter', serif;
+  font-size: 1.5em;
+  margin-bottom: 20px;
+  color: #003D4F;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="datetime-local"] {
+  padding: 10px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  font-size: 1em;
+}
+
+.modal-content button {
+  padding: 10px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.modal-content button[type="submit"] {
+  background-color: #6B9E78; /* Jade Green */
+  color: white;
+}
+
+.modal-content button[type="submit"]:hover {
+  background-color: #5a8665;
+}
+
+.modal-content button[type="button"] {
+  background-color: #F2617A; /* Flamingo Pink */
+  color: white;
+}
+
+.modal-content button[type="button"]:hover {
+  background-color: #d94f68;
+}
