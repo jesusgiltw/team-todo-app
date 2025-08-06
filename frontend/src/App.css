@@ -1,3 +1,8 @@
+h1, h2, strong {
+  font-family: 'Bitter', serif;
+  font-weight: 700;
+}
+
 body {
   margin: 0;
   padding: 0;

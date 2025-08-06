@@ -1,5 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import './App.css';
+import "@fontsource/bitter"; // peso normal
+import "@fontsource/bitter/700.css"; // negrita
+
 
 function Notification({ message, onClose }) {
   React.useEffect(() => {
