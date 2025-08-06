@@ -146,11 +146,18 @@ function App() {
             <li key={task.id} className={className}>
               <div className="info">
                 <strong>{task.title}</strong><br />
-                <small>Vence: {new Date(task.dueDate).toLocaleString()}</small>
+                <small>
+                  {expired ? (
+                    <>Vencida: {new Date(task.dueDate).toLocaleString()} ⚠️</>
+                  ) : (
+                    <>Vence: {new Date(task.dueDate).toLocaleString()}</>
+                  )}
+                </small>
+
               </div>
               <div className="status">
                 {!task.isCompleted && expired && (
-                  <span title="Tarea vencida sin completar">💀</span>
+                  <span title="Tarea vencida sin completar">⚠️</span>
                 )}
 
                 {!task.isCompleted && !expired && (
