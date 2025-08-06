@@ -154,7 +154,7 @@ function App() {
                 )}
 
                 {!task.isCompleted && !expired && (
-                  <button onClick={() => handleComplete(task.id)}>Completar</button>
+                  <button className="complete-btn" onClick={() => handleComplete(task.id)}>Completar</button>
                 )}
 
                 <span
