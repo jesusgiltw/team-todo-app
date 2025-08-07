@@ -85,6 +85,10 @@ public class TasksController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(Guid id, [FromBody] UpdateTaskRequest request)
     {
+        if(request.Title is null || request.Title.Trim().Length == 0)
+        {
+            return BadRequest("El título no puede estar vacío.");
+        }
         var task = await _repository.GetByIdAsync(id);
         if (task == null)
             return NotFound();
